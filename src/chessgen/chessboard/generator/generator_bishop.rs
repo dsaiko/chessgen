@@ -41,6 +41,7 @@ const MAGIC_A8H1: [BitBoard; 15] = [
 ];
 
 /// Moves generator for a Bishop (+Queen).
+#[derive(Debug)]
 pub(super) struct GeneratorBishop {
     pub(super) a1h8_mask: [BitBoard; Index::ALL_FIELDS.len()],
     pub(super) a1h8_magic: [BitBoard; Index::ALL_FIELDS.len()],

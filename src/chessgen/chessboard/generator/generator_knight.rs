@@ -1,6 +1,7 @@
 use crate::{BitBoard, ChessBoard, Color, Index, Move, Piece};
 
 /// Moves generator for a Knight.
+#[derive(Debug)]
 pub(super) struct GeneratorKnight {
     pub attacks_cache: [BitBoard; Index::ALL_FIELDS.len()],
 }

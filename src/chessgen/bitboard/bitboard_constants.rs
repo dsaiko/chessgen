@@ -189,7 +189,7 @@ impl BitBoard {
     ///  );
     /// ```
     #[rustfmt::skip]
-    pub const A1H8: &[BitBoard] = &[
+    pub const A1H8: &'static[BitBoard] = &[
         BitBoard::from_index_array(&[Index::A8]),
         BitBoard::from_index_array(&[Index::A7, Index::B8]),
         BitBoard::from_index_array(&[Index::A6, Index::B7, Index::C8]),
@@ -229,7 +229,7 @@ impl BitBoard {
     ///  );
     /// ```
     #[rustfmt::skip]
-    pub const A8H1: &[BitBoard] = &[
+    pub const A8H1: &'static[BitBoard] = &[
         BitBoard::from_index_array(&[Index::A1]),
         BitBoard::from_index_array(&[Index::A2, Index::B1]),
         BitBoard::from_index_array(&[Index::A3, Index::B2, Index::C1]),

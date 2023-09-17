@@ -7,6 +7,7 @@ use crate::{BitBoard, ChessBoard, Piece, Zobrist};
 /// PerfT checker.
 ///
 /// See: [ChessProgramming PerfT](https://www.chessprogramming.org/Perft)
+#[derive(Debug)]
 pub struct PerfT {
     /// PerfT Cache.
     cache: PerfTCache,
@@ -95,7 +96,6 @@ impl PerfT {
         }
 
         let hash = self.zobrist.hash(board);
-
         if let Some(count) = self.cache.get(hash, depth) {
             return count;
         }
@@ -139,6 +139,7 @@ impl PerfT {
 }
 
 /// Cache entry for PerfT.
+#[derive(Debug)]
 struct PerfTCacheEntry {
     /// ChessBoard hash.
     hash: u64,
@@ -160,6 +161,8 @@ impl PerfTCacheEntry {
 }
 
 /// PerfT Cache.
+
+#[derive(Debug)]
 struct PerfTCache {
     /// Cache size.
     size: usize,

@@ -53,6 +53,7 @@ use super::generator_rook::GeneratorRook;
 ///
 /// assert!(board.validate_and_apply_move(&Move::from_string("a1a8").unwrap()).is_err());
 /// ```
+#[derive(Debug)]
 pub struct Generator {
     /// King generator.
     generator_king: GeneratorKing,

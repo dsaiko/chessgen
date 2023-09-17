@@ -18,6 +18,7 @@ const BLACK_CASTLING_OOO_ATTACKS: BitBoard =
     BitBoard::from_index_array(&[Index::C8, Index::D8, Index::E8]);
 
 /// Moves generator for a King.
+#[derive(Debug)]
 pub(super) struct GeneratorKing {
     pub attacks_cache: [BitBoard; Index::ALL_FIELDS.len()],
 }

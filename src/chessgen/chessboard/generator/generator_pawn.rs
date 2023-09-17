@@ -1,6 +1,7 @@
 use crate::{BitBoard, ChessBoard, Color, Index, Move, Piece};
 
 /// Moves generator for a Pawn.
+#[derive(Debug)]
 pub(super) struct GeneratorPawn {
     pub attacks_cache: [[BitBoard; Index::ALL_FIELDS.len()]; Color::VALUES.len()],
 }

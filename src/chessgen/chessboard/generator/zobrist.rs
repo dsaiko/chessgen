@@ -5,6 +5,7 @@ use crate::{ChessBoard, Color, Index, Piece};
 /// so all instances of Zobrist should be initialized with same unique numbers.
 ///
 /// See: [ChessProgramming Zobrist Hashing](https://www.chessprogramming.org/Zobrist_Hashing)
+#[derive(Debug)]
 pub struct Zobrist {
     /// Unique 64bit IDs for pieces.
     pieces: Vec<Vec<Vec<u64>>>,

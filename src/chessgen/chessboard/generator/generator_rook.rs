@@ -14,6 +14,7 @@ const MAGIC_FILE: [BitBoard; 8] = [
 ];
 
 /// Moves generator for a Rook (+Queen).
+#[derive(Debug)]
 pub(super) struct GeneratorRook {
     pub rank_shift: [usize; Index::ALL_FIELDS.len()],
     pub rank_mask: [BitBoard; Index::ALL_FIELDS.len()],

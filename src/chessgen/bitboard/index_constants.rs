@@ -154,7 +154,7 @@ impl Index {
     /// assert_eq!(b, BitBoard::UNIVERSE);
     /// ```
     #[rustfmt::skip]
-    pub const ALL_FIELDS: &[Index] = &[
+    pub const ALL_FIELDS: &'static[Index] = &[
         Index::A1, Index::B1, Index::C1, Index::D1, Index::E1, Index::F1, Index::G1, Index::H1,
         Index::A2, Index::B2, Index::C2, Index::D2, Index::E2, Index::F2, Index::G2, Index::H2,
         Index::A3, Index::B3, Index::C3, Index::D3, Index::E3, Index::F3, Index::G3, Index::H3,
