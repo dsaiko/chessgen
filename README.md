@@ -52,10 +52,14 @@ vs C++
 Bellow are perft results for a standard chessboard layout on my AMD Ryzen 7 5800H, Ubuntu 23.04. 
 
 <pre>
-_______| PERFT 7 _______________| PERFT 8 ___________________|
-C++:   | 3,195,901,860    1.05s | 84,998,978,956      28.99s |
-Rust:  | 3,195,901,860    1.59s | 84,998,978,956      26.28s |
-GO:    | 3,195,901,860    2.88s | 84,998,978,956   2m 16.47s |
+PERFT 7:     3,195,901,860 combinations
+PERFT 8:    84,998,978,956 combinations
+PERFT 9: 2,439,530,234,167 combinations
+
+_______| PERFT 7 _| PERFT 8 __| PERFT 9 __|
+C++:   |    1.05s |    28.99s |  2205.02s |
+Rust:  |    1.59s |    26.28s |  1213.49s |
+GO:    |    2.88s | 2m 16.47s |       --- |
 </pre>
 
 ## Examples
@@ -175,9 +179,12 @@ Attacks:
 1 - - - - - - - - 1
   a b c d e f g h
 
-Legal moves: d1a1 d1b1 d1c1 d1d2 d1d3 d1d4 d1d5 d1d6 d1d7 d1d8 d1c2 d1b3 d1a4 e1f1 e1d2 e1f2 
+Legal moves: d1a1 d1b1 d1c1 d1d2 d1d3 d1d4 d1d5 d1d6 d1d7 d1d8 
+d1c2 d1b3 d1a4 e1f1 e1d2 e1f2 
 
-Pseudo legal moves: d1a1 d1b1 d1c1 d1d2 d1d3 d1d4 d1d5 d1d6 d1d7 d1d8 e2f1 e2d3 e2f3 e2c4 e2g4 e2b5 e2h5 e2a6 d1c2 d1b3 d1a4 e1f1 e1d2 e1f2 
+Pseudo legal moves: d1a1 d1b1 d1c1 d1d2 d1d3 d1d4 d1d5 d1d6
+d1d7 d1d8 e2f1 e2d3 e2f3 e2c4 e2g4 e2b5 e2h5 e2a6 d1c2 d1b3
+d1a4 e1f1 e1d2 e1f2 
 </pre>
 
 ### Aplaying a move
@@ -259,7 +266,7 @@ perfT finished:
 
 ### Displaying chess board
 
-You may display chessboard using 
+You may implement custom display of the chessboard using 
 ```rust
 ChessBoard::piece_at()
 ```
@@ -279,7 +286,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let file = i.file();
         let rank = i.rank();
 
-        // translate ranks for display as ran 0 is the last south rank
+        // translate ranks for a display as rank 0 is the most bottom rank
         let translated_i = Index::from_rank_and_file(7 - rank, file);
 
         let output = match board.piece_at(translated_i) {
