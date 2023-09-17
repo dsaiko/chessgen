@@ -1,0 +1,37 @@
+[package]
+name = "chessgen"
+description = "Chess moves generator"
+edition = "2021"
+version = "0.9.0"
+authors = ["Dusan Saiko <dusan@saiko.cz>"]
+license = "MIT"
+repository = "https://github.com/dsaiko/chessgen"
+keywords = ["chess", "bitboards", "chessprogramming"]
+categories = ["algorithms", "game-engines", "game-development"]
+
+[lib]
+name = "chessgen"
+path = "src/chessgen/lib.rs"
+
+[[bin]]
+name = "chessgen-perft"
+path = "src/perft.rs"
+
+[dependencies]
+fastrand = "2.0.0"
+
+[profile.dev]
+opt-level = 0
+overflow-checks = false
+
+[profile.release]
+overflow-checks = false
+codegen-units = 1
+strip = "debuginfo"
+lto = true
+opt-level = 3
+panic = "abort"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
