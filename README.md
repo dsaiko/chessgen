@@ -187,7 +187,7 @@ d1d7 d1d8 e2f1 e2d3 e2f3 e2c4 e2g4 e2b5 e2h5 e2a6 d1c2 d1b3
 d1a4 e1f1 e1d2 e1f2 
 </pre>
 
-### Aplaying a move
+### Applaying a move
 
 ```rust
 use chessgen::{ChessBoard, Move};
