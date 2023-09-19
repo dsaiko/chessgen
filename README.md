@@ -55,11 +55,22 @@ Bellow are perft results for a standard chessboard layout on my AMD Ryzen 7 5800
 PERFT 7:     3,195,901,860 combinations
 PERFT 8:    84,998,978,956 combinations
 PERFT 9: 2,439,530,234,167 combinations
+</pre>
 
+Multi-threaded, with cache:
+<pre>
 _______| PERFT 7 _| PERFT 8 __| PERFT 9 __|
-C++:   |    1.05s |    28.99s |  2205.02s |
-Rust:  |    1.59s |    26.28s |  1213.49s |
-GO:    |    2.88s | 2m 16.47s |       --- |
+C++:   |    1.05s |    28.99s |    36m45s |
+Rust:  |    1.59s |    26.28s |    20m13s |
+GO:    |    2.88s |     2m16s |       --- |
+</pre>
+
+Multi-threaded, no cache:
+<pre>
+_______| PERFT 7 _| PERFT 8 __| PERFT 9 __|
+C++:   |    3,850 |     1m52s |    54m17s |
+Rust:  |    3.78s |     1m56s |    58m48s |
+GO:    |   18.38s |     9m57s |       --- |
 </pre>
 
 ## Examples
