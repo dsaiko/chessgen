@@ -2,17 +2,17 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](
 https://github.com/dsaiko/chessgen)
-[![Cargo](https://img.shields.io/crates/v/fastrand.svg)](
+[![Cargo](https://img.shields.io/crates/v/chessgen.svg)](
 https://crates.io/crates/chessgen)
-[![Documentation](https://docs.rs/fastrand/badge.svg)](
+[![Documentation](https://docs.rs/chessgen/badge.svg)](
 https://docs.rs/chessgen)
-
 
 A simple and fast chess moves generator.
 
 This is my next and probably last rewrite of a chess moves generator into a new programming language.
 
 Since 2014, I have implemented the same engine in:
+
 - C
 - [C++](https://github.com/dsaiko/sachista-chess)
 - Java
@@ -25,14 +25,15 @@ Rust implementation is the newest and most advanced in terms of code quality and
 
 ## Performance comparison between different language versions.
 
-[PerfT](https://www.chessprogramming.org/Perft) computes number of all possible moves for a given depth and is a common way how to test performance and result of a chess generator.
+[PerfT](https://www.chessprogramming.org/Perft) computes number of all possible moves for a given depth and is a common
+way how to test performance and result of a chess generator.
 
-
-Rust implementation is very comparable in performance to C++ and it surprisingly behaves faster for bigger depth of moves. 
+Rust implementation is very comparable in performance to C++ and it surprisingly behaves faster for bigger depth of
+moves.
 
 The reason for a longer startup of a perft binary is probably an initialisation of a cache array using a loop and Mutex:
 
-```rust
+```
   cache: Box<[Mutex<PerfTCacheEntry>]>
   ...
   let mut cache = Vec::with_capacity(cache_size);
@@ -49,7 +50,7 @@ vs C++
     cache = new std::atomic<CacheEntry>[cacheSize];
 ```
 
-Bellow are perft results for a standard chessboard layout on my AMD Ryzen 7 5800H, Ubuntu 23.04. 
+Bellow are perft results for a standard chessboard layout on my AMD Ryzen 7 5800H, Ubuntu 23.04.
 
 <pre>
 PERFT 7:     3,195,901,860 combinations
@@ -57,7 +58,7 @@ PERFT 8:    84,998,978,956 combinations
 PERFT 9: 2,439,530,234,167 combinations
 </pre>
 
-Multi-threaded, with cache:
+Multithreaded, with cache:
 <pre>
 _______| PERFT 7 _| PERFT 8 __| PERFT 9 __|
 C++:   |    1.05s |    28.99s |    36m45s |
@@ -65,7 +66,7 @@ Rust:  |    1.59s |    26.28s |    20m13s |
 GO:    |    2.88s |     2m16s |       --- |
 </pre>
 
-Multi-threaded, no cache:
+Multithreaded, no cache:
 <pre>
 _______| PERFT 7 _| PERFT 8 __| PERFT 9 __|
 C++:   |    3,850 |     1m52s |    54m17s |
@@ -76,6 +77,7 @@ GO:    |   18.38s |     9m57s |       --- |
 ## Examples
 
 ### Initializing ChessBoard
+
 ```rust
 use chessgen::ChessBoard;
 
@@ -123,7 +125,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Output: 
+Output:
 <pre>
   a b c d e f g h
 8 r n b q k b n r 8
@@ -138,6 +140,7 @@ Output:
 </pre>
 
 ### Generating attacks and moves
+
 See: [ChessProgramming Pseudo Legal Move](https://www.chessprogramming.org/Pseudo-Legal_Move)
 
 ```rust
@@ -176,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Output: 
+Output:
 <pre>
 Attacks:
   a b c d e f g h
@@ -198,7 +201,7 @@ d1d7 d1d8 e2f1 e2d3 e2f3 e2c4 e2g4 e2b5 e2h5 e2a6 d1c2 d1b3
 d1a4 e1f1 e1d2 e1f2 
 </pre>
 
-### Applaying a move
+### Applying a move
 
 ```rust
 use chessgen::{ChessBoard, Move};
@@ -225,7 +228,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Output: 
+Output:
 <pre>
   a b c d e f g h
 8 - - - Q q - - k 8
@@ -266,7 +269,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Output: 
+Output:
 <pre>
 perfT finished:
    FEN:   rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
@@ -277,9 +280,10 @@ perfT finished:
 
 ### Displaying chess board
 
-You may implement custom display of the chessboard using 
-```rust
-ChessBoard::piece_at()
+You may implement custom display of the chessboard using
+
+```
+    ChessBoard::piece_at()
 ```
 
 ```rust
@@ -313,7 +317,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Output: 
+Output:
 <pre>
  r  n  b  q  k  b  n  r 
  p  p  p  p  p  p  p  p 

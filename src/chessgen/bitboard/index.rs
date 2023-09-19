@@ -189,7 +189,7 @@ impl Index {
         }
     }
 
-    /// Shift indext north by one.
+    /// Shift Index north by one.
     /// If index would be out of board, None is returned.
     ///     
     /// # Examples
@@ -211,7 +211,7 @@ impl Index {
         }
     }
 
-    /// Shift indext south by one.
+    /// Shift Index south by one.
     /// If index would be out of board, None is returned.
     ///     
     /// # Examples

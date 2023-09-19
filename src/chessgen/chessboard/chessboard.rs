@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::Write;
 
-use crate::{BitBoard, Generator, IlegalMoveError, Index};
+use crate::{BitBoard, Generator, IllegalMoveError, Index};
 
 use super::{Color, InvalidChessBoardStringError, InvalidFENStringError, Move, Piece};
 
@@ -19,7 +19,7 @@ pub struct ChessBoard {
     pub en_passant_target: Option<Index>,
     /// Half move clock.
     pub half_move_clock: usize,
-    /// Full mobe number.
+    /// Full move number.
     pub full_move_number: usize,
     /// Piece array [Index] for caching piece on a field.
     piece_cache: [Option<(Color, Piece)>; Index::ALL_FIELDS.len()],
@@ -662,10 +662,10 @@ impl ChessBoard {
     ///
     /// assert!(board.validate_and_apply_move(&Move::from_string("a1a8").unwrap()).is_err());
     /// ```
-    pub fn validate_and_apply_move(&self, m: &Move) -> Result<ChessBoard, IlegalMoveError> {
+    pub fn validate_and_apply_move(&self, m: &Move) -> Result<ChessBoard, IllegalMoveError> {
         match self.legal_moves().iter().find(|mm| *mm == m) {
             Some(_) => Ok(self.apply_move(m)),
-            None => Err(IlegalMoveError::IlegalMove(*m)),
+            None => Err(IllegalMoveError::IllegalMove(*m)),
         }
     }
 
@@ -1144,7 +1144,7 @@ impl ChessBoard {
                 _ => return Err(InvalidFENStringError::InvalidString(fen.to_string())),
             }
         }
-        // full move nubmer starts at 1
+        // full move number starts at 1
         if n > 0 {
             full_move_number = n;
         }

@@ -1,4 +1,4 @@
-pub use self::error::IlegalMoveError;
+pub use self::error::IllegalMoveError;
 pub use self::generator::Generator;
 pub use self::perft::PerfT;
 pub use self::zobrist::Zobrist;

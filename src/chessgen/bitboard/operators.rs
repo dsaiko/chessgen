@@ -449,7 +449,7 @@ impl From<Index> for BitBoard {
     }
 }
 
-/// Operator allowing substraction a number from Index.
+/// Operator allowing subtraction a number from Index.
 ///
 /// # Examples
 ///
@@ -486,28 +486,28 @@ impl std::ops::Add<usize> for Index {
 }
 
 /// Hex formatting
-impl std::fmt::LowerHex for BitBoard {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::LowerHex for BitBoard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::LowerHex::fmt(&self.state, f)
     }
 }
 
 /// Hex formatting
-impl std::fmt::UpperHex for BitBoard {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::UpperHex for BitBoard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::UpperHex::fmt(&self.state, f)
     }
 }
 
 /// Octal formatting
-impl std::fmt::Octal for BitBoard {
+impl fmt::Octal for BitBoard {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Octal::fmt(&self.state, f)
     }
 }
 
 /// Binary formatting
-impl std::fmt::Binary for BitBoard {
+impl fmt::Binary for BitBoard {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Binary::fmt(&self.state, f)
     }
