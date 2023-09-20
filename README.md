@@ -1,11 +1,9 @@
 # chessgen
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](
-https://github.com/dsaiko/chessgen)
-[![Cargo](https://img.shields.io/crates/v/chessgen.svg)](
-https://crates.io/crates/chessgen)
-[![Documentation](https://docs.rs/chessgen/badge.svg)](
-https://docs.rs/chessgen)
+[![Build](https://github.com/dsaiko/chessgen/actions/workflows/rust.yml/badge.svg)](https://github.com/dsaiko/chessgen/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dsaiko/chessgen)
+[![Cargo](https://img.shields.io/crates/v/chessgen.svg)](https://crates.io/crates/chessgen)
+[![Documentation](https://docs.rs/chessgen/badge.svg)](https://docs.rs/chessgen)
 
 A simple and fast chess moves generator.
 

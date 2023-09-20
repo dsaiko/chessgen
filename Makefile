@@ -7,7 +7,7 @@ clean:
 	cargo clean
 
 codecheck:
-	cargo clippy --tests
+	cargo clippy --all-features --tests
 
 test:
 	cargo test --release
