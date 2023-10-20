@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if args.len() > 1 {
-        depth = args[1].parse::<usize>()?;
+        depth = args[1].parse()?;
     }
 
     if args.len() > 2 {

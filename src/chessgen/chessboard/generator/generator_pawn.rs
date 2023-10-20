@@ -30,7 +30,7 @@ impl GeneratorPawn {
 
     /// Generate attacks.
     pub(super) fn generate_attacks(&self, board: &ChessBoard, color: Color) -> BitBoard {
-        let b = board.pieces[color][Piece::Pawn];
+        let b = board.pieces[*color][*Piece::Pawn];
 
         match color {
             Color::White => b.shifted_northeast() | b.shifted_northwest(),
@@ -41,7 +41,7 @@ impl GeneratorPawn {
     /// Generate moves.
     pub(super) fn generate_moves(&self, board: &ChessBoard, f: &mut impl FnMut(Move)) {
         let empty_board = !board.all_pieces();
-        let mut pieces = board.pieces[board.next_move][Piece::Pawn];
+        let mut pieces = board.pieces[*board.next_move][*Piece::Pawn];
 
         while let (Some(from), tmp) = pieces.bitpop() {
             pieces = tmp;

@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::Deref;
 
 use super::{Index, InvalidBitBoardStringError};
 
@@ -11,6 +12,15 @@ pub struct BitBoard {
     ///
     /// If bit is set - piece is present on the field of given position.
     pub state: u64,
+}
+
+// Dereference BitBoard into u64
+impl Deref for BitBoard {
+    type Target = u64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.state
+    }
 }
 
 impl BitBoard {

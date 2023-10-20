@@ -181,8 +181,9 @@ impl GeneratorRook {
     /// Generate attacks for one piece.
     fn attacks(&self, i: Index, all_pieces: BitBoard) -> BitBoard {
         // use magic multipliers to get occupancy state index
-        let state_rank = (all_pieces & self.rank_mask[i]).state >> self.rank_shift[i.index];
-        let state_file = ((all_pieces & self.file_mask[i]).state * self.file_magic[i].state) >> 57;
+        let state_rank = (all_pieces & self.rank_mask[*i]).state >> self.rank_shift[i.index];
+        let state_file =
+            ((all_pieces & self.file_mask[*i]).state * self.file_magic[*i].state) >> 57;
 
         // get possible attacks for field / occupancy state index
         self.rank_attacks[i.index][state_rank as usize]
@@ -191,7 +192,7 @@ impl GeneratorRook {
 
     /// Generate attacks.
     pub(super) fn generate_attacks(&self, board: &ChessBoard, color: Color) -> BitBoard {
-        let mut b = board.pieces[color][Piece::Rook] | board.pieces[color][Piece::Queen];
+        let mut b = board.pieces[*color][*Piece::Rook] | board.pieces[*color][*Piece::Queen];
         let mut attacks = BitBoard::EMPTY;
 
         let all_pieces = board.all_pieces();
@@ -210,8 +211,8 @@ impl GeneratorRook {
         let all_pieces = board.all_pieces();
         let board_available = board.board_to_attack();
 
-        for p in [Piece::Rook, Piece::Queen] {
-            let mut pieces = board.pieces[board.next_move][p];
+        for p in [*Piece::Rook, *Piece::Queen] {
+            let mut pieces = board.pieces[*board.next_move][p];
 
             while let (Some(i), tmp) = pieces.bitpop() {
                 pieces = tmp;

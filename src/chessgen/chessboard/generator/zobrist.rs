@@ -94,14 +94,14 @@ impl Zobrist {
 
         for c in Color::VALUES {
             for p in [Piece::King, Piece::Queen] {
-                if board.castling_options[c][p] {
-                    hash ^= self.castling[c][p];
+                if board.castling_options[*c][*p] {
+                    hash ^= self.castling[*c][*p];
                 }
             }
         }
 
         if let Some(en_passant_target) = board.en_passant_target {
-            hash ^= self.en_passant[en_passant_target];
+            hash ^= self.en_passant[*en_passant_target];
         }
 
         (0..Color::VALUES.len()).for_each(|c| {
@@ -109,7 +109,7 @@ impl Zobrist {
                 let mut pieces = board.pieces[c][p];
                 while let (Some(i), tmp) = pieces.bitpop() {
                     pieces = tmp;
-                    hash ^= self.pieces[c][p][i];
+                    hash ^= self.pieces[c][p][*i];
                 }
             });
         });

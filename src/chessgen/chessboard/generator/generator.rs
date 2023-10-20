@@ -235,24 +235,25 @@ impl Generator {
             return false;
         };
 
-        let pieces = &board.pieces[board.next_move];
+        let pieces = &board.pieces[*board.next_move];
         let all_pieces = board.all_pieces();
 
-        if pieces[Piece::Pawn] & self.generator_pawn.attacks_cache[board.next_move.opponent()][king]
+        if pieces[*Piece::Pawn]
+            & self.generator_pawn.attacks_cache[*board.next_move.opponent()][*king]
             != BitBoard::EMPTY
         {
             return true;
         }
 
-        if pieces[Piece::Knight] & self.generator_knight.attacks_cache[king] != BitBoard::EMPTY {
+        if pieces[*Piece::Knight] & self.generator_knight.attacks_cache[*king] != BitBoard::EMPTY {
             return true;
         }
 
-        if pieces[Piece::King] & self.generator_king.attacks_cache[king] != BitBoard::EMPTY {
+        if pieces[*Piece::King] & self.generator_king.attacks_cache[*king] != BitBoard::EMPTY {
             return true;
         }
 
-        let rooks = pieces[Piece::Queen] | pieces[Piece::Rook];
+        let rooks = pieces[*Piece::Queen] | pieces[*Piece::Rook];
 
         if self.generator_rook.rank_attacks[king.index][(all_pieces
             & self.generator_rook.rank_mask[king.index])
@@ -276,7 +277,7 @@ impl Generator {
             return true;
         }
 
-        let bishops = pieces[Piece::Queen] | pieces[Piece::Bishop];
+        let bishops = pieces[*Piece::Queen] | pieces[*Piece::Bishop];
         if self.generator_bishop.a8h1_attacks[king.index][((all_pieces
             & self.generator_bishop.a8h1_mask[king.index])
             .state

@@ -250,8 +250,10 @@ impl GeneratorBishop {
     fn attacks(&self, i: Index, all_pieces: BitBoard) -> BitBoard {
         // use magic multipliers to get occupancy state index
 
-        let index_a1h8 = ((all_pieces & self.a1h8_mask[i]).state * self.a1h8_magic[i].state) >> 57;
-        let index_a8h1 = ((all_pieces & self.a8h1_mask[i]).state * self.a8h1_magic[i].state) >> 57;
+        let index_a1h8 =
+            ((all_pieces & self.a1h8_mask[*i]).state * self.a1h8_magic[*i].state) >> 57;
+        let index_a8h1 =
+            ((all_pieces & self.a8h1_mask[*i]).state * self.a8h1_magic[*i].state) >> 57;
 
         self.a1h8_attacks[i.index][index_a1h8 as usize]
             | self.a8h1_attacks[i.index][index_a8h1 as usize]
@@ -259,7 +261,7 @@ impl GeneratorBishop {
 
     /// Generate attacks.
     pub(super) fn generate_attacks(&self, board: &ChessBoard, color: Color) -> BitBoard {
-        let mut b = board.pieces[color][Piece::Bishop] | board.pieces[color][Piece::Queen];
+        let mut b = board.pieces[*color][*Piece::Bishop] | board.pieces[*color][*Piece::Queen];
         let mut attacks = BitBoard::EMPTY;
 
         let all_pieces = board.all_pieces();
@@ -278,8 +280,8 @@ impl GeneratorBishop {
         let all_pieces = board.all_pieces();
         let board_available = board.board_to_attack();
 
-        for p in [Piece::Bishop, Piece::Queen] {
-            let mut pieces = board.pieces[board.next_move][p];
+        for p in [*Piece::Bishop, *Piece::Queen] {
+            let mut pieces = board.pieces[*board.next_move][p];
 
             while let (Some(i), tmp) = pieces.bitpop() {
                 pieces = tmp;

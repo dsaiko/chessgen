@@ -13,7 +13,7 @@ pub struct ChessBoard {
     /// Color to move.
     pub next_move: Color,
     /// Boolean array of castling options.
-    /// Only [Piece::King] and [Piece::Queen] is used.
+    /// Only [*Piece::King] and [*Piece::Queen] is used.
     pub castling_options: [[bool; 2]; Color::VALUES.len()],
     /// En-Passant target or none.
     pub en_passant_target: Option<Index>,
@@ -234,7 +234,7 @@ impl ChessBoard {
     #[inline(always)]
     #[must_use]
     pub fn pieces(&self, color: Color) -> BitBoard {
-        self.pieces[color]
+        self.pieces[*color]
             .iter()
             .fold(BitBoard::EMPTY, |res, val| res | *val)
     }
@@ -379,7 +379,7 @@ impl ChessBoard {
     #[inline(always)]
     #[must_use]
     pub fn my_king(&self) -> Option<Index> {
-        self.pieces[self.next_move][Piece::King].bitscan()
+        self.pieces[*self.next_move][*Piece::King].bitscan()
     }
 
     /// Returns index of opponent's king - king of color which will be on move next turn.
@@ -407,7 +407,7 @@ impl ChessBoard {
     #[inline(always)]
     #[must_use]
     pub fn opponent_king(&self) -> Option<Index> {
-        self.pieces[self.next_move.opponent()][Piece::King].bitscan()
+        self.pieces[*self.next_move.opponent()][*Piece::King].bitscan()
     }
 
     /// Returns piece (without color) on a ChessBoard field.
@@ -718,39 +718,39 @@ impl ChessBoard {
         en_passant_target = None;
 
         // make the move
-        pieces[next_move][piece] ^= m.from | m.to;
-        piece_cache[m.from] = None;
-        piece_cache[m.to] = Some((color, piece));
+        pieces[*next_move][*piece] ^= m.from | m.to;
+        piece_cache[*m.from] = None;
+        piece_cache[*m.to] = Some((color, piece));
 
         match piece {
             Piece::Rook => match next_move {
                 Color::White => match m.from {
-                    Index::A1 => castling_options[next_move][Piece::Queen] = false,
-                    Index::H1 => castling_options[next_move][Piece::King] = false,
+                    Index::A1 => castling_options[*next_move][*Piece::Queen] = false,
+                    Index::H1 => castling_options[*next_move][*Piece::King] = false,
                     _ => {}
                 },
                 Color::Black => match m.from {
-                    Index::A8 => castling_options[next_move][Piece::Queen] = false,
-                    Index::H8 => castling_options[next_move][Piece::King] = false,
+                    Index::A8 => castling_options[*next_move][*Piece::Queen] = false,
+                    Index::H8 => castling_options[*next_move][*Piece::King] = false,
                     _ => {}
                 },
             },
             Piece::King => {
-                castling_options[next_move][Piece::Queen] = false;
-                castling_options[next_move][Piece::King] = false;
+                castling_options[*next_move][*Piece::Queen] = false;
+                castling_options[*next_move][*Piece::King] = false;
                 match next_move {
                     Color::White => {
                         if m.from == Index::E1 {
                             match m.to {
                                 Index::C1 => {
-                                    pieces[next_move][Piece::Rook] ^= Index::A1 | Index::D1;
-                                    piece_cache[Index::A1] = None;
-                                    piece_cache[Index::D1] = Some((color, Piece::Rook));
+                                    pieces[*next_move][*Piece::Rook] ^= Index::A1 | Index::D1;
+                                    piece_cache[*Index::A1] = None;
+                                    piece_cache[*Index::D1] = Some((color, Piece::Rook));
                                 }
                                 Index::G1 => {
-                                    pieces[next_move][Piece::Rook] ^= Index::H1 | Index::F1;
-                                    piece_cache[Index::H1] = None;
-                                    piece_cache[Index::F1] = Some((color, Piece::Rook));
+                                    pieces[*next_move][*Piece::Rook] ^= Index::H1 | Index::F1;
+                                    piece_cache[*Index::H1] = None;
+                                    piece_cache[*Index::F1] = Some((color, Piece::Rook));
                                 }
                                 _ => {}
                             }
@@ -760,14 +760,14 @@ impl ChessBoard {
                         if m.from == Index::E8 {
                             match m.to {
                                 Index::C8 => {
-                                    pieces[next_move][Piece::Rook] ^= Index::A8 | Index::D8;
-                                    piece_cache[Index::A8] = None;
-                                    piece_cache[Index::D8] = Some((color, Piece::Rook));
+                                    pieces[*next_move][*Piece::Rook] ^= Index::A8 | Index::D8;
+                                    piece_cache[*Index::A8] = None;
+                                    piece_cache[*Index::D8] = Some((color, Piece::Rook));
                                 }
                                 Index::G8 => {
-                                    pieces[next_move][Piece::Rook] ^= Index::H8 | Index::F8;
-                                    piece_cache[Index::H8] = None;
-                                    piece_cache[Index::F8] = Some((color, Piece::Rook));
+                                    pieces[*next_move][*Piece::Rook] ^= Index::H8 | Index::F8;
+                                    piece_cache[*Index::H8] = None;
+                                    piece_cache[*Index::F8] = Some((color, Piece::Rook));
                                 }
                                 _ => {}
                             }
@@ -785,10 +785,10 @@ impl ChessBoard {
                     };
                     en_passant_target = Some(i.unwrap());
                 } else if let Some(promotion) = m.promotion {
-                    pieces[next_move][Piece::Pawn] ^= m.to;
+                    pieces[*next_move][*Piece::Pawn] ^= m.to;
 
-                    pieces[next_move][promotion] ^= m.to;
-                    piece_cache[m.to] = Some((color, promotion));
+                    pieces[*next_move][*promotion] ^= m.to;
+                    piece_cache[*m.to] = Some((color, promotion));
                 }
             }
             _ => {}
@@ -800,13 +800,13 @@ impl ChessBoard {
             match next_move {
                 Color::White => {
                     let i = m.to.shifted_south().unwrap();
-                    pieces[Color::Black][Piece::Pawn] ^= i;
-                    piece_cache[i] = None;
+                    pieces[*Color::Black][*Piece::Pawn] ^= i;
+                    piece_cache[*i] = None;
                 }
                 Color::Black => {
                     let i = m.to.shifted_north().unwrap();
-                    pieces[Color::White][Piece::Pawn] ^= i;
-                    piece_cache[i] = None;
+                    pieces[*Color::White][*Piece::Pawn] ^= i;
+                    piece_cache[*i] = None;
                 }
             }
         }
@@ -816,21 +816,21 @@ impl ChessBoard {
             let opponent_color = self.next_move.opponent();
 
             for p in Piece::VALUES {
-                if pieces[opponent_color][p].has_bit(m.to) {
-                    pieces[opponent_color][p] ^= m.to;
+                if pieces[*opponent_color][*p].has_bit(m.to) {
+                    pieces[*opponent_color][*p] ^= m.to;
                     break;
                 }
             }
 
             match next_move {
                 Color::White => match m.to {
-                    Index::A8 => castling_options[Color::Black][Piece::Queen] = false,
-                    Index::H8 => castling_options[Color::Black][Piece::King] = false,
+                    Index::A8 => castling_options[*Color::Black][*Piece::Queen] = false,
+                    Index::H8 => castling_options[*Color::Black][*Piece::King] = false,
                     _ => {}
                 },
                 Color::Black => match m.to {
-                    Index::A1 => castling_options[Color::White][Piece::Queen] = false,
-                    Index::H1 => castling_options[Color::White][Piece::King] = false,
+                    Index::A1 => castling_options[*Color::White][*Piece::Queen] = false,
+                    Index::H1 => castling_options[*Color::White][*Piece::King] = false,
                     _ => {}
                 },
             }
@@ -920,7 +920,7 @@ impl ChessBoard {
 
         for c in Color::VALUES {
             for p in Piece::VALUES {
-                pieces.push((self.pieces[c][p].mirrored_vertically(), p.to_char(c)))
+                pieces.push((self.pieces[*c][*p].mirrored_vertically(), p.to_char(c)))
             }
         }
 
@@ -955,11 +955,11 @@ impl ChessBoard {
         // Castling
         let mut some_castling = false;
         for c in Color::VALUES {
-            if self.castling_options[c][Piece::King] {
+            if self.castling_options[*c][*Piece::King] {
                 write!(fen, "{}", Piece::King.to_char(c)).unwrap();
                 some_castling = true;
             }
-            if self.castling_options[c][Piece::Queen] {
+            if self.castling_options[*c][*Piece::Queen] {
                 write!(fen, "{}", Piece::Queen.to_char(c)).unwrap();
                 some_castling = true;
             }
@@ -1024,7 +1024,7 @@ impl ChessBoard {
 
             for c in Color::VALUES {
                 for p in Piece::VALUES {
-                    shifted[c][p] = BitBoard::new(shifted[c][p].state << size);
+                    shifted[*c][*p] = BitBoard::new(*shifted[*c][*p] << size);
                 }
             }
 
@@ -1053,7 +1053,7 @@ impl ChessBoard {
                 pieces = shift_pieces(pieces, 1);
 
                 match Piece::from_char(c as char) {
-                    Ok((color, piece)) => pieces[color][piece] |= Index::A1,
+                    Ok((color, piece)) => pieces[*color][*piece] |= Index::A1,
                     Err(_) => return Err(InvalidFENStringError::InvalidString(fen.to_string())),
                 }
             }
@@ -1062,7 +1062,7 @@ impl ChessBoard {
         // need to mirror the boards
         for c in Color::VALUES {
             for p in Piece::VALUES {
-                pieces[c][p] = pieces[c][p].mirrored_horizontally();
+                pieces[*c][*p] = pieces[*c][*p].mirrored_horizontally();
             }
         }
 
@@ -1086,8 +1086,8 @@ impl ChessBoard {
                 b'-' => {}
                 _ => match Piece::from_char(c as char) {
                     Ok((color, piece)) => match piece {
-                        Piece::King => castling_options[color][Piece::King] = true,
-                        Piece::Queen => castling_options[color][Piece::Queen] = true,
+                        Piece::King => castling_options[*color][*Piece::King] = true,
+                        Piece::Queen => castling_options[*color][*Piece::Queen] = true,
                         _ => return Err(InvalidFENStringError::InvalidString(fen.to_string())),
                     },
                     Err(_) => return Err(InvalidFENStringError::InvalidString(fen.to_string())),
@@ -1150,27 +1150,27 @@ impl ChessBoard {
         }
 
         // fix castling - rooks
-        if !pieces[Color::White][Piece::Rook].has_bit(Index::A1) {
-            castling_options[Color::White][Piece::Queen] = false;
+        if !pieces[*Color::White][*Piece::Rook].has_bit(Index::A1) {
+            castling_options[*Color::White][*Piece::Queen] = false;
         }
-        if !pieces[Color::White][Piece::Rook].has_bit(Index::H1) {
-            castling_options[Color::White][Piece::King] = false;
+        if !pieces[*Color::White][*Piece::Rook].has_bit(Index::H1) {
+            castling_options[*Color::White][*Piece::King] = false;
         }
-        if !pieces[Color::Black][Piece::Rook].has_bit(Index::A8) {
-            castling_options[Color::Black][Piece::Queen] = false;
+        if !pieces[*Color::Black][*Piece::Rook].has_bit(Index::A8) {
+            castling_options[*Color::Black][*Piece::Queen] = false;
         }
-        if !pieces[Color::Black][Piece::Rook].has_bit(Index::H8) {
-            castling_options[Color::Black][Piece::King] = false;
+        if !pieces[*Color::Black][*Piece::Rook].has_bit(Index::H8) {
+            castling_options[*Color::Black][*Piece::King] = false;
         }
 
         // fix castling - kings
-        if !pieces[Color::White][Piece::King].has_bit(Index::E1) {
-            castling_options[Color::White][Piece::King] = false;
-            castling_options[Color::White][Piece::Queen] = false;
+        if !pieces[*Color::White][*Piece::King].has_bit(Index::E1) {
+            castling_options[*Color::White][*Piece::King] = false;
+            castling_options[*Color::White][*Piece::Queen] = false;
         }
-        if !pieces[Color::Black][Piece::King].has_bit(Index::E8) {
-            castling_options[Color::Black][Piece::King] = false;
-            castling_options[Color::Black][Piece::Queen] = false;
+        if !pieces[*Color::Black][*Piece::King].has_bit(Index::E8) {
+            castling_options[*Color::Black][*Piece::King] = false;
+            castling_options[*Color::Black][*Piece::Queen] = false;
         }
 
         Ok(ChessBoard {
@@ -1206,7 +1206,7 @@ impl fmt::Display for ChessBoard {
 
         for c in Color::VALUES {
             for p in Piece::VALUES {
-                pieces.push((self.pieces[c][p].mirrored_vertically(), p.to_char(c)))
+                pieces.push((self.pieces[*c][*p].mirrored_vertically(), p.to_char(c)))
             }
         }
 

@@ -53,10 +53,10 @@ impl GeneratorKing {
 
     /// Generate attacks.
     pub(super) fn generate_attacks(&self, board: &ChessBoard, color: Color) -> BitBoard {
-        let b = board.pieces[color][Piece::King];
+        let b = board.pieces[*color][*Piece::King];
 
         if let Some(i) = b.bitscan() {
-            self.attacks_cache[i]
+            self.attacks_cache[*i]
         } else {
             BitBoard::EMPTY
         }
@@ -64,11 +64,11 @@ impl GeneratorKing {
 
     /// Generate moves.
     pub(super) fn generate_moves(&self, board: &ChessBoard, f: &mut impl FnMut(Move)) {
-        let Some(from) = board.pieces[board.next_move][Piece::King].bitscan() else {
+        let Some(from) = board.pieces[*board.next_move][*Piece::King].bitscan() else {
             return;
         };
 
-        let mut moves = self.attacks_cache[from] & board.board_to_attack();
+        let mut moves = self.attacks_cache[*from] & board.board_to_attack();
 
         while let (Some(to), tmp) = moves.bitpop() {
             moves = tmp;
@@ -83,7 +83,7 @@ impl GeneratorKing {
 
         match board.next_move {
             Color::White => {
-                if board.castling_options[board.next_move][Piece::King]
+                if board.castling_options[*board.next_move][*Piece::King]
                     && (all_pieces & WHITE_CASTLING_OO_EMPTY) == BitBoard::EMPTY
                     && !Generator::G.is_bitmask_under_attack(
                         board,
@@ -97,7 +97,7 @@ impl GeneratorKing {
                         promotion: None,
                     })
                 }
-                if board.castling_options[board.next_move][Piece::Queen]
+                if board.castling_options[*board.next_move][*Piece::Queen]
                     && (all_pieces & WHITE_CASTLING_OOO_EMPTY) == BitBoard::EMPTY
                     && !Generator::G.is_bitmask_under_attack(
                         board,
@@ -113,7 +113,7 @@ impl GeneratorKing {
                 }
             }
             Color::Black => {
-                if board.castling_options[board.next_move][Piece::King]
+                if board.castling_options[*board.next_move][*Piece::King]
                     && (all_pieces & BLACK_CASTLING_OO_EMPTY) == BitBoard::EMPTY
                     && !Generator::G.is_bitmask_under_attack(
                         board,
@@ -127,7 +127,7 @@ impl GeneratorKing {
                         promotion: None,
                     })
                 }
-                if board.castling_options[board.next_move][Piece::Queen]
+                if board.castling_options[*board.next_move][*Piece::Queen]
                     && (all_pieces & BLACK_CASTLING_OOO_EMPTY) == BitBoard::EMPTY
                     && !Generator::G.is_bitmask_under_attack(
                         board,

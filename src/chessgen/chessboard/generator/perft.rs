@@ -103,7 +103,7 @@ impl PerfT {
         let mut count = 0u64;
 
         let attacks = board.attacks(board.next_move.opponent());
-        let is_check = attacks & board.pieces[board.next_move][Piece::King] != BitBoard::EMPTY;
+        let is_check = attacks & board.pieces[*board.next_move][*Piece::King] != BitBoard::EMPTY;
 
         board.moves(&mut |m| {
             let piece = board.piece_at(m.from);
@@ -161,13 +161,12 @@ impl PerfTCacheEntry {
 }
 
 /// PerfT Cache.
-
 #[derive(Debug)]
 struct PerfTCache {
     /// Cache size.
     size: usize,
     /// Synchronized cache.
-    cache: Box<[Mutex<PerfTCacheEntry>]>,
+    cache: Vec<Mutex<PerfTCacheEntry>>,
 }
 
 impl PerfTCache {
@@ -180,7 +179,7 @@ impl PerfTCache {
 
         PerfTCache {
             size: cache_size,
-            cache: cache.into_boxed_slice(),
+            cache,
         }
     }
 

@@ -36,12 +36,12 @@ impl GeneratorKnight {
 
     /// Generate attacks.
     pub(super) fn generate_attacks(&self, board: &ChessBoard, color: Color) -> BitBoard {
-        let mut b = board.pieces[color][Piece::Knight];
+        let mut b = board.pieces[*color][*Piece::Knight];
 
         let mut attacks = BitBoard::EMPTY;
         while let (Some(from), tmp) = b.bitpop() {
             b = tmp;
-            attacks |= self.attacks_cache[from];
+            attacks |= self.attacks_cache[*from];
         }
 
         attacks
@@ -49,11 +49,11 @@ impl GeneratorKnight {
 
     /// Generate moves.
     pub(super) fn generate_moves(&self, board: &ChessBoard, f: &mut impl FnMut(Move)) {
-        let mut pieces = board.pieces[board.next_move][Piece::Knight];
+        let mut pieces = board.pieces[*board.next_move][*Piece::Knight];
 
         while let (Some(from), tmp) = pieces.bitpop() {
             pieces = tmp;
-            let mut moves = self.attacks_cache[from] & board.board_to_attack();
+            let mut moves = self.attacks_cache[*from] & board.board_to_attack();
 
             while let (Some(to), tmp) = moves.bitpop() {
                 moves = tmp;

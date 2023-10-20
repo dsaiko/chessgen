@@ -16,7 +16,7 @@ fmt:
 	cargo fmt
 
 fix:
-	cargo fix --allow-dirty
+	cargo fix --allow-dirty --allow-staged
 
 perft:
 	RUSTFLAGS="-C target-cpu=native" cargo build --release && time target/release/chessgen-perft

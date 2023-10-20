@@ -1,10 +1,12 @@
 use std::fmt;
+use std::ops::Deref;
 
 use super::{Color, InvalidPieceNotationError};
 
 /// Chess piece representation.
 /// Piece without color information.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[repr(usize)]
 pub enum Piece {
     /// King.
     King = 0,
@@ -20,6 +22,14 @@ pub enum Piece {
     Pawn,
 }
 
+// Dereference Color into usize
+impl Deref for Piece {
+    type Target = usize;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { std::mem::transmute(self) }
+    }
+}
 impl Piece {
     /// Array of possible Piece values.
     pub const VALUES: [Self; 6] = [

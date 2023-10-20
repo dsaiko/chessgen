@@ -1,14 +1,25 @@
 use std::fmt;
+use std::ops::Deref;
 
 use super::InvalidColorNotationError;
 
 /// Chess piece color.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[repr(usize)]
 pub enum Color {
     /// White color.
     White = 0,
     /// Black color.
     Black,
+}
+
+// Dereference Color into usize
+impl Deref for Color {
+    type Target = usize;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { std::mem::transmute(self) }
+    }
 }
 
 impl Color {

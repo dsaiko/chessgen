@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::Deref;
 
 use super::{BitBoard, InvalidIndexNotationError};
 
@@ -7,6 +8,15 @@ use super::{BitBoard, InvalidIndexNotationError};
 pub struct Index {
     /// Field Index.
     pub index: usize,
+}
+
+// Dereference Index into usize
+impl Deref for Index {
+    type Target = usize;
+
+    fn deref(&self) -> &Self::Target {
+        &self.index
+    }
 }
 
 impl Index {

@@ -11,8 +11,6 @@ pub use self::generator::PerfT;
 pub use self::generator::Zobrist;
 pub use self::piece::Piece;
 pub use self::r#move::Move;
-
-mod board_indices;
 #[allow(clippy::module_inception)]
 mod chessboard;
 mod color;
