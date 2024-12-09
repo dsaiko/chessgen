@@ -200,6 +200,6 @@ impl PerfTCache {
     #[inline(always)]
     fn set(&self, hash: u64, depth: usize, count: u64) {
         let index = ((self.size - 1) as u64 & hash) as usize;
-        (*self.cache[index].lock().unwrap()) = PerfTCacheEntry { hash, depth, count };
+        *self.cache[index].lock().unwrap() = PerfTCacheEntry { hash, depth, count };
     }
 }
