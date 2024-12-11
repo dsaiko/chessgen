@@ -1,5 +1,7 @@
+use parking_lot::RwLock;
+use std::cmp;
 use std::sync::mpsc::channel;
-use std::sync::Mutex;
+use std::sync::Arc;
 use std::thread;
 
 use crate::{BitBoard, ChessBoard, Piece, Zobrist};
@@ -25,7 +27,7 @@ impl PerfT {
     }
 
     /// Returns count of possible moves up to certain dept.
-    /// Runs the computation in parallel.
+    /// Runs the computation in parallel using an optimized thread pool.
     ///
     /// # Examples
     ///
@@ -72,14 +74,37 @@ impl PerfT {
     /// );
     /// ```
     pub fn perft_n(&self, board: &ChessBoard, depth: usize) -> u64 {
+        if depth == 0 {
+            return 1;
+        }
+
+        // For shallow depths, use single-threaded computation
+        if depth <= 2 {
+            return self.perft1(board, depth);
+        }
+
         let (tx, rx) = channel();
+        let num_cpus = thread::available_parallelism()
+            .map(|p| p.get())
+            .unwrap_or(1);
+        let mut moves = Vec::new();
+        board.legal_moves().into_iter().for_each(|m| moves.push(m));
+        let chunk_size = cmp::max(1, moves.len() / num_cpus);
+        let shared_self = Arc::new(self);
 
         thread::scope(|scope| {
-            for m in board.legal_moves() {
-                let tx = &tx;
+            for chunk in moves.chunks(chunk_size) {
+                let tx = tx.clone();
+                let shared_self = Arc::clone(&shared_self);
+                let chunk = chunk.to_vec();
+
                 scope.spawn(move || {
-                    let new_board = board.apply_move(&m);
-                    tx.send(self.perft1(&new_board, depth - 1)).unwrap();
+                    let mut count = 0;
+                    for m in chunk {
+                        let new_board = board.apply_move(&m);
+                        count += shared_self.perft1(&new_board, depth - 1);
+                    }
+                    tx.send(count).unwrap();
                 });
             }
         });
@@ -165,8 +190,8 @@ impl PerfTCacheEntry {
 struct PerfTCache {
     /// Cache size.
     size: usize,
-    /// Synchronized cache.
-    cache: Vec<Mutex<PerfTCacheEntry>>,
+    /// Synchronized cache using RwLock for better performance.
+    cache: Vec<RwLock<PerfTCacheEntry>>,
 }
 
 impl PerfTCache {
@@ -174,7 +199,7 @@ impl PerfTCache {
     pub fn new(cache_size: usize) -> Self {
         let mut cache = Vec::with_capacity(cache_size);
         for _ in 0..cache_size {
-            cache.push(Mutex::new(PerfTCacheEntry::new()))
+            cache.push(RwLock::new(PerfTCacheEntry::new()))
         }
 
         PerfTCache {
@@ -187,8 +212,7 @@ impl PerfTCache {
     #[inline(always)]
     fn get(&self, hash: u64, depth: usize) -> Option<u64> {
         let index = ((self.size - 1) as u64 & hash) as usize;
-
-        let e = self.cache[index].lock().unwrap();
+        let e = self.cache[index].read();
         if e.hash != hash || e.depth != depth {
             None
         } else {
@@ -200,6 +224,7 @@ impl PerfTCache {
     #[inline(always)]
     fn set(&self, hash: u64, depth: usize, count: u64) {
         let index = ((self.size - 1) as u64 & hash) as usize;
-        *self.cache[index].lock().unwrap() = PerfTCacheEntry { hash, depth, count };
+        let mut e = self.cache[index].write();
+        *e = PerfTCacheEntry { hash, depth, count };
     }
 }
