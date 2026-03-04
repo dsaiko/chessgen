@@ -7,12 +7,12 @@ use crate::{ChessBoard, Color, Index, Piece};
 /// See: [ChessProgramming Zobrist Hashing](https://www.chessprogramming.org/Zobrist_Hashing)
 #[derive(Debug)]
 pub struct Zobrist {
-    /// Unique 64bit IDs for pieces.
-    pieces: Vec<Vec<Vec<u64>>>,
-    /// Unique 64bit IDs for castling.
-    castling: Vec<Vec<u64>>,
+    /// Unique 64bit IDs for pieces: [color][piece][square].
+    pieces: [[[u64; Index::ALL_FIELDS.len()]; Piece::VALUES.len()]; Color::VALUES.len()],
+    /// Unique 64bit IDs for castling: [color][piece].
+    castling: [[u64; Piece::VALUES.len()]; Color::VALUES.len()],
     /// Unique 64bit IDs for en_passant Index.
-    en_passant: Vec<u64>,
+    en_passant: [u64; Index::ALL_FIELDS.len()],
     /// Unique 64bit IDs for side on move.
     side: u64,
 }
@@ -29,31 +29,29 @@ impl Zobrist {
     pub fn new() -> Zobrist {
         fastrand::seed(13);
 
-        let mut pieces = vec![
-            vec![vec![0u64; Index::ALL_FIELDS.len()]; Piece::VALUES.len()];
-            Color::VALUES.len()
-        ];
-        let mut en_passant = vec![0u64; Index::ALL_FIELDS.len()];
-        let mut castling = vec![vec![0u64; Piece::VALUES.len()]; Color::VALUES.len()];
+        let mut pieces =
+            [[[0u64; Index::ALL_FIELDS.len()]; Piece::VALUES.len()]; Color::VALUES.len()];
+        let mut en_passant = [0u64; Index::ALL_FIELDS.len()];
+        let mut castling = [[0u64; Piece::VALUES.len()]; Color::VALUES.len()];
         let side = fastrand::u64(..);
 
-        (0..pieces.len()).for_each(|i1| {
-            (0..pieces[i1].len()).for_each(|i2| {
-                (0..pieces[i1][i2].len()).for_each(|i3| {
-                    pieces[i1][i2][i3] = fastrand::u64(..);
-                });
-            });
-        });
+        for color_pieces in &mut pieces {
+            for piece_squares in color_pieces.iter_mut() {
+                for square in piece_squares.iter_mut() {
+                    *square = fastrand::u64(..);
+                }
+            }
+        }
 
-        (0..en_passant.len()).for_each(|i| {
-            en_passant[i] = fastrand::u64(..);
-        });
+        for square in &mut en_passant {
+            *square = fastrand::u64(..);
+        }
 
-        (0..castling.len()).for_each(|i1| {
-            (0..castling[i1].len()).for_each(|i2| {
-                castling[i1][i2] = fastrand::u64(..);
-            });
-        });
+        for color_castling in &mut castling {
+            for piece in color_castling.iter_mut() {
+                *piece = fastrand::u64(..);
+            }
+        }
 
         Zobrist {
             pieces,
@@ -104,15 +102,15 @@ impl Zobrist {
             hash ^= self.en_passant[*en_passant_target];
         }
 
-        (0..Color::VALUES.len()).for_each(|c| {
-            (0..Piece::VALUES.len()).for_each(|p| {
+        for c in 0..Color::VALUES.len() {
+            for p in 0..Piece::VALUES.len() {
                 let mut pieces = board.pieces[c][p];
                 while let (Some(i), tmp) = pieces.bitpop() {
                     pieces = tmp;
                     hash ^= self.pieces[c][p][*i];
                 }
-            });
-        });
+            }
+        }
 
         hash
     }

@@ -9,8 +9,8 @@ pub use self::generator::Generator;
 pub use self::generator::IllegalMoveError;
 pub use self::generator::PerfT;
 pub use self::generator::Zobrist;
-pub use self::piece::Piece;
 pub use self::r#move::Move;
+pub use self::piece::Piece;
 #[allow(clippy::module_inception)]
 mod chessboard;
 mod color;

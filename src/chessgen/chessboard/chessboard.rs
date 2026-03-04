@@ -21,8 +21,8 @@ pub struct ChessBoard {
     pub half_move_clock: usize,
     /// Full move number.
     pub full_move_number: usize,
-    /// Piece array [Index] for caching piece on a field.
-    piece_cache: [Option<(Color, Piece)>; Index::ALL_FIELDS.len()],
+    /// Cached union of all pieces per color for fast access.
+    color_pieces: [BitBoard; Color::VALUES.len()],
 }
 
 /// Constructs a new empty ChessBoard.
@@ -34,7 +34,7 @@ impl Default for ChessBoard {
 
 impl ChessBoard {
     // FEN definition of standard chessboard layout.
-    ///     
+    ///
     /// # Examples
     ///
     /// ```
@@ -57,7 +57,7 @@ impl ChessBoard {
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     /// New empty chessboard.
-    ///     
+    ///
     /// # Examples
     ///
     /// ```
@@ -79,7 +79,7 @@ impl ChessBoard {
     pub const EMPTY: ChessBoard = ChessBoard::new();
 
     /// New chessboard with a standard layout.
-    ///     
+    ///
     /// # Examples
     ///
     /// ```
@@ -121,7 +121,7 @@ impl ChessBoard {
             en_passant_target: None,
             half_move_clock: 0,
             full_move_number: 1,
-            piece_cache: [None; Index::ALL_FIELDS.len()],
+            color_pieces: [BitBoard::EMPTY; Color::VALUES.len()],
         }
     }
 
@@ -205,8 +205,25 @@ impl ChessBoard {
             en_passant_target: None,
             half_move_clock: 0,
             full_move_number: 1,
-            piece_cache: ChessBoard::new_piece_cache(&pieces),
+            color_pieces: ChessBoard::compute_color_pieces(&pieces),
         }
+    }
+
+    /// Compute cached union of pieces per color from the piece bitboards.
+    const fn compute_color_pieces(
+        pieces: &[[BitBoard; Piece::VALUES.len()]; Color::VALUES.len()],
+    ) -> [BitBoard; Color::VALUES.len()] {
+        let mut result = [BitBoard::EMPTY; Color::VALUES.len()];
+        let mut c = 0;
+        while c < Color::VALUES.len() {
+            let mut p = 0;
+            while p < Piece::VALUES.len() {
+                result[c] = BitBoard::new(result[c].state | pieces[c][p].state);
+                p += 1;
+            }
+            c += 1;
+        }
+        result
     }
 
     /// Returns bitboard of all pieces of a color.
@@ -234,13 +251,11 @@ impl ChessBoard {
     #[inline(always)]
     #[must_use]
     pub fn pieces(&self, color: Color) -> BitBoard {
-        self.pieces[*color]
-            .iter()
-            .fold(BitBoard::EMPTY, |res, val| res | *val)
+        self.color_pieces[*color]
     }
 
     /// Returns bitboard of all pieces.
-    ///     
+    ///
     /// # Examples
     ///
     /// ```
@@ -264,11 +279,11 @@ impl ChessBoard {
     #[inline(always)]
     #[must_use]
     pub fn all_pieces(&self) -> BitBoard {
-        self.pieces(Color::White) | self.pieces(Color::Black)
+        BitBoard::new(self.color_pieces[0].state | self.color_pieces[1].state)
     }
 
     /// Returns bitboard of pieces which are to move.
-    ///     
+    ///
     /// # Examples
     ///
     /// ```
@@ -292,11 +307,11 @@ impl ChessBoard {
     #[inline(always)]
     #[must_use]
     pub fn my_pieces(&self) -> BitBoard {
-        self.pieces(self.next_move)
+        self.color_pieces[*self.next_move]
     }
 
     /// Returns bitboard of opponent pieces.
-    ///     
+    ///
     /// # Examples
     ///
     /// ```
@@ -316,11 +331,11 @@ impl ChessBoard {
     ///     - - - - - - - -
     ///     - - - - - - - -
     /// ").unwrap());
-    /// ```   
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn opponent_pieces(&self) -> BitBoard {
-        self.pieces(self.next_move.opponent())
+        self.color_pieces[*self.next_move.opponent()]
     }
 
     /// Returns bitboard of filed which we may attack.
@@ -345,7 +360,7 @@ impl ChessBoard {
     ///     - - - - - - - -
     ///     - - - - - - - -
     /// ").unwrap());
-    /// ```   
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn board_to_attack(&self) -> BitBoard {
@@ -375,7 +390,7 @@ impl ChessBoard {
     /// ").unwrap().my_king().unwrap());
     ///
     /// assert!(ChessBoard::EMPTY.my_king().is_none());
-    /// ```   
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn my_king(&self) -> Option<Index> {
@@ -403,7 +418,7 @@ impl ChessBoard {
     ///     P P P P P P P P
     ///     R N B Q K B N R
     /// ").unwrap().opponent_king().unwrap());
-    /// ```   
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn opponent_king(&self) -> Option<Index> {
@@ -433,32 +448,20 @@ impl ChessBoard {
     #[inline(always)]
     #[must_use]
     pub fn piece_at(&self, i: Index) -> Option<(Color, Piece)> {
-        self.piece_cache[i.index]
-    }
-
-    /// Construct piece cache which holds information about Piece at ChessBoard Index.
-    #[must_use]
-    pub(super) const fn new_piece_cache(
-        pieces: &[[BitBoard; Piece::VALUES.len()]; Color::VALUES.len()],
-    ) -> [Option<(Color, Piece)>; Index::ALL_FIELDS.len()] {
-        let mut cache = [None; Index::ALL_FIELDS.len()];
-
-        let mut ic = 0;
-        while ic < Color::VALUES.len() {
-            let mut ip = 0;
-            while ip < Piece::VALUES.len() {
-                let mut b = pieces[ic][ip];
-
-                while let (Some(i), next) = b.bitpop() {
-                    b = next;
-                    cache[i.index] = Some((Color::VALUES[ic], Piece::VALUES[ip]));
+        if self.color_pieces[0].has_bit(i) {
+            for p in Piece::VALUES {
+                if self.pieces[0][*p].has_bit(i) {
+                    return Some((Color::White, p));
                 }
-                ip += 1;
             }
-            ic += 1;
+        } else if self.color_pieces[1].has_bit(i) {
+            for p in Piece::VALUES {
+                if self.pieces[1][*p].has_bit(i) {
+                    return Some((Color::Black, p));
+                }
+            }
         }
-
-        cache
+        None
     }
 
     /// Generate all legal moves for a board
@@ -696,61 +699,72 @@ impl ChessBoard {
     /// ```
     #[must_use]
     pub fn apply_move(&self, m: &Move) -> Self {
-        let (_, piece) = self.piece_at(m.from).unwrap();
         let color = self.next_move;
+        let opponent = color.opponent();
+
+        // Find piece type from bitboards (ordered by move frequency)
+        let my = &self.pieces[*color];
+        let piece = if my[*Piece::Pawn].has_bit(m.from) {
+            Piece::Pawn
+        } else if my[*Piece::Knight].has_bit(m.from) {
+            Piece::Knight
+        } else if my[*Piece::Bishop].has_bit(m.from) {
+            Piece::Bishop
+        } else if my[*Piece::Rook].has_bit(m.from) {
+            Piece::Rook
+        } else if my[*Piece::Queen].has_bit(m.from) {
+            Piece::Queen
+        } else {
+            Piece::King
+        };
 
         let mut pieces = self.pieces;
-        let mut next_move = self.next_move;
+        let mut color_pieces = self.color_pieces;
         let mut castling_options = self.castling_options;
         let mut en_passant_target = self.en_passant_target;
         let mut full_move_number = self.full_move_number;
         let mut half_move_clock = self.half_move_clock + 1;
-        let mut piece_cache = self.piece_cache;
 
-        let is_capture = (self.opponent_pieces() & m.to) != BitBoard::EMPTY;
-        let is_enpassant = piece == Piece::Pawn
-            && match en_passant_target {
-                Some(i) => m.to == i,
-                None => false,
-            };
+        let from_to = m.from | m.to;
+        let is_capture = color_pieces[*opponent].has_bit(m.to);
+        let is_enpassant = piece == Piece::Pawn && en_passant_target.is_some_and(|i| m.to == i);
 
         // reset enPassant
         en_passant_target = None;
 
         // make the move
-        pieces[*next_move][*piece] ^= m.from | m.to;
-        piece_cache[*m.from] = None;
-        piece_cache[*m.to] = Some((color, piece));
+        pieces[*color][*piece] ^= from_to;
+        color_pieces[*color] ^= from_to;
 
         match piece {
-            Piece::Rook => match next_move {
+            Piece::Rook => match color {
                 Color::White => match m.from {
-                    Index::A1 => castling_options[*next_move][*Piece::Queen] = false,
-                    Index::H1 => castling_options[*next_move][*Piece::King] = false,
+                    Index::A1 => castling_options[*color][*Piece::Queen] = false,
+                    Index::H1 => castling_options[*color][*Piece::King] = false,
                     _ => {}
                 },
                 Color::Black => match m.from {
-                    Index::A8 => castling_options[*next_move][*Piece::Queen] = false,
-                    Index::H8 => castling_options[*next_move][*Piece::King] = false,
+                    Index::A8 => castling_options[*color][*Piece::Queen] = false,
+                    Index::H8 => castling_options[*color][*Piece::King] = false,
                     _ => {}
                 },
             },
             Piece::King => {
-                castling_options[*next_move][*Piece::Queen] = false;
-                castling_options[*next_move][*Piece::King] = false;
-                match next_move {
+                castling_options[*color][*Piece::Queen] = false;
+                castling_options[*color][*Piece::King] = false;
+                match color {
                     Color::White => {
                         if m.from == Index::E1 {
                             match m.to {
                                 Index::C1 => {
-                                    pieces[*next_move][*Piece::Rook] ^= Index::A1 | Index::D1;
-                                    piece_cache[*Index::A1] = None;
-                                    piece_cache[*Index::D1] = Some((color, Piece::Rook));
+                                    let rook_move = Index::A1 | Index::D1;
+                                    pieces[*color][*Piece::Rook] ^= rook_move;
+                                    color_pieces[*color] ^= rook_move;
                                 }
                                 Index::G1 => {
-                                    pieces[*next_move][*Piece::Rook] ^= Index::H1 | Index::F1;
-                                    piece_cache[*Index::H1] = None;
-                                    piece_cache[*Index::F1] = Some((color, Piece::Rook));
+                                    let rook_move = Index::H1 | Index::F1;
+                                    pieces[*color][*Piece::Rook] ^= rook_move;
+                                    color_pieces[*color] ^= rook_move;
                                 }
                                 _ => {}
                             }
@@ -760,14 +774,14 @@ impl ChessBoard {
                         if m.from == Index::E8 {
                             match m.to {
                                 Index::C8 => {
-                                    pieces[*next_move][*Piece::Rook] ^= Index::A8 | Index::D8;
-                                    piece_cache[*Index::A8] = None;
-                                    piece_cache[*Index::D8] = Some((color, Piece::Rook));
+                                    let rook_move = Index::A8 | Index::D8;
+                                    pieces[*color][*Piece::Rook] ^= rook_move;
+                                    color_pieces[*color] ^= rook_move;
                                 }
                                 Index::G8 => {
-                                    pieces[*next_move][*Piece::Rook] ^= Index::H8 | Index::F8;
-                                    piece_cache[*Index::H8] = None;
-                                    piece_cache[*Index::F8] = Some((color, Piece::Rook));
+                                    let rook_move = Index::H8 | Index::F8;
+                                    pieces[*color][*Piece::Rook] ^= rook_move;
+                                    color_pieces[*color] ^= rook_move;
                                 }
                                 _ => {}
                             }
@@ -778,17 +792,16 @@ impl ChessBoard {
             Piece::Pawn => {
                 half_move_clock = 0;
                 if m.to.distance_to(m.from) > 10 {
-                    let i = if next_move == Color::White {
+                    let i = if color == Color::White {
                         m.from.shifted_north()
                     } else {
                         m.from.shifted_south()
                     };
                     en_passant_target = Some(i.unwrap());
                 } else if let Some(promotion) = m.promotion {
-                    pieces[*next_move][*Piece::Pawn] ^= m.to;
-
-                    pieces[*next_move][*promotion] ^= m.to;
-                    piece_cache[*m.to] = Some((color, promotion));
+                    pieces[*color][*Piece::Pawn] ^= m.to;
+                    pieces[*color][*promotion] ^= m.to;
+                    // No change to color_pieces - piece stays at same square
                 }
             }
             _ => {}
@@ -797,32 +810,32 @@ impl ChessBoard {
         if is_enpassant {
             half_move_clock = 0;
 
-            match next_move {
+            match color {
                 Color::White => {
                     let i = m.to.shifted_south().unwrap();
                     pieces[*Color::Black][*Piece::Pawn] ^= i;
-                    piece_cache[*i] = None;
+                    color_pieces[*Color::Black] ^= i;
                 }
                 Color::Black => {
                     let i = m.to.shifted_north().unwrap();
                     pieces[*Color::White][*Piece::Pawn] ^= i;
-                    piece_cache[*i] = None;
+                    color_pieces[*Color::White] ^= i;
                 }
             }
         }
 
         if is_capture {
             half_move_clock = 0;
-            let opponent_color = self.next_move.opponent();
 
             for p in Piece::VALUES {
-                if pieces[*opponent_color][*p].has_bit(m.to) {
-                    pieces[*opponent_color][*p] ^= m.to;
+                if pieces[*opponent][*p].has_bit(m.to) {
+                    pieces[*opponent][*p] ^= m.to;
                     break;
                 }
             }
+            color_pieces[*opponent] ^= m.to;
 
-            match next_move {
+            match color {
                 Color::White => match m.to {
                     Index::A8 => castling_options[*Color::Black][*Piece::Queen] = false,
                     Index::H8 => castling_options[*Color::Black][*Piece::King] = false,
@@ -836,7 +849,7 @@ impl ChessBoard {
             }
         }
 
-        next_move = self.next_move.opponent();
+        let next_move = opponent;
 
         if next_move == Color::Black {
             full_move_number += 1;
@@ -849,7 +862,7 @@ impl ChessBoard {
             en_passant_target,
             half_move_clock,
             full_move_number,
-            piece_cache,
+            color_pieces,
         }
     }
 
@@ -1180,7 +1193,7 @@ impl ChessBoard {
             en_passant_target,
             half_move_clock,
             full_move_number,
-            piece_cache: ChessBoard::new_piece_cache(&pieces),
+            color_pieces: ChessBoard::compute_color_pieces(&pieces),
         })
     }
 }

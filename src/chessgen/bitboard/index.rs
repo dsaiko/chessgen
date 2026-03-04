@@ -192,11 +192,7 @@ impl Index {
     #[inline(always)]
     #[must_use]
     pub const fn distance_to(self, other: Index) -> usize {
-        if self.index > other.index {
-            self.index - other.index
-        } else {
-            other.index - self.index
-        }
+        self.index.abs_diff(other.index)
     }
 
     /// Shift Index north by one.

@@ -29,32 +29,13 @@ way how to test performance and result of a chess generator.
 Rust implementation is very comparable in performance to C++ and it surprisingly behaves faster for bigger depth of
 moves.
 
-The reason for a longer startup of a perft binary is probably an initialisation of a cache array using a loop and Mutex:
-
-```
-  cache: Box<[Mutex<PerfTCacheEntry>]>
-  ...
-  let mut cache = Vec::with_capacity(cache_size);
-  for _ in 0..cache_size {
-      cache.push(Mutex::new(PerfTCacheEntry::new()))
-  }
-```
-
-vs C++
-
-```c++
-    std::atomic<CacheEntry>   *cache;
-  ...
-    cache = new std::atomic<CacheEntry>[cacheSize];
-```
-
-Bellow are perft results for a standard chessboard layout on my AMD Ryzen 7 5800H, Ubuntu 23.04.
-
 <pre>
 PERFT 7:     3,195,901,860 combinations
 PERFT 8:    84,998,978,956 combinations
 PERFT 9: 2,439,530,234,167 combinations
 </pre>
+
+### Benchmark: AMD Ryzen 7 5800H, Ubuntu 23.04
 
 Multithreaded, with cache:
 <pre>
@@ -71,6 +52,35 @@ C++:   |    3,850 |     1m52s |    54m17s |
 Rust:  |    3.78s |     1m56s |    58m48s |
 GO:    |   18.38s |     9m57s |       --- |
 </pre>
+
+# Benchmark: Apple M4, macOS
+
+Multithreaded, with cache (Rust v0.9.5):
+<pre>
+_______| PERFT 7 _| PERFT 8 __|
+Rust:  |    1.22s |    27.82s |
+</pre>
+
+# v0.9.9 Performance Optimizations
+
+The following optimizations were applied by Claude (Anthropic) to significantly reduce
+per-move overhead:
+
+- **ChessBoard struct size reduced from ~1680 to ~160 bytes** - Removed the
+  `piece_cache: [Option<(Color, Piece)>; 64]` field (1536 bytes) which was copied
+  on every `apply_move` call. Replaced with a lightweight `color_pieces: [BitBoard; 2]`
+  cache (16 bytes) that is maintained incrementally.
+- **O(1) piece accessors** - `pieces()`, `all_pieces()`, `my_pieces()`, and
+  `opponent_pieces()` now return cached bitboards instead of folding 6 piece
+  bitboards per call.
+- **Optimized `apply_move()`** - Piece type lookup from bitboards ordered by move
+  frequency (Pawn first, King last). Capture detection uses the cached color
+  bitboard directly.
+- **Stack-allocated Zobrist tables** - Replaced heap-allocated `Vec<Vec<Vec<u64>>>`
+  with fixed-size arrays `[[[u64; 64]; 6]; 2]`, eliminating pointer indirection
+  in the hot hashing loop.
+- **Direct bitboard checks in PerfT** - Replaced `piece_at()` calls in the
+  performance-critical `perft1` loop with direct bitboard membership tests.
 
 ## Examples
 

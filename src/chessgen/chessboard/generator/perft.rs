@@ -1,7 +1,7 @@
 use parking_lot::RwLock;
 use std::cmp;
-use std::sync::mpsc::channel;
 use std::sync::Arc;
+use std::sync::mpsc::channel;
 use std::thread;
 
 use crate::{BitBoard, ChessBoard, Piece, Zobrist};
@@ -131,13 +131,9 @@ impl PerfT {
         let is_check = attacks & board.pieces[*board.next_move][*Piece::King] != BitBoard::EMPTY;
 
         board.moves(&mut |m| {
-            let piece = board.piece_at(m.from);
-            let is_king = piece == Some((board.next_move, Piece::King));
-            let is_enpassant = piece == Some((board.next_move, Piece::Pawn))
-                && match board.en_passant_target {
-                    Some(i) => m.to == i,
-                    None => false,
-                };
+            let is_king = board.pieces[*board.next_move][*Piece::King].has_bit(m.from);
+            let is_enpassant = board.pieces[*board.next_move][*Piece::Pawn].has_bit(m.from)
+                && board.en_passant_target.is_some_and(|i| m.to == i);
 
             // need to validate legality of move only in following cases
             let need_to_validate = is_king || is_check || attacks.has_bit(m.from) || is_enpassant;

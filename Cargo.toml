@@ -1,8 +1,8 @@
 [package]
 name = "chessgen"
 description = "Chess moves generator"
-edition = "2021"
-version = "0.9.5"
+edition = "2024"
+version = "0.9.9"
 authors = ["Dusan Saiko <dusan@saiko.cz>"]
 license = "MIT"
 repository = "https://github.com/dsaiko/chessgen"
@@ -19,7 +19,7 @@ path = "src/perft.rs"
 
 [dependencies]
 fastrand = "2.3.0"
-parking_lot = "0.12.1"
+parking_lot = "0.12.5"
 
 [profile.dev]
 opt-level = 0
